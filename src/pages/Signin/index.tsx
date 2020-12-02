@@ -14,18 +14,16 @@ import CheckboxInput from '../../components/CheckboxInput';
 import { Content } from './styles';
 
 interface FormData {
-  username: string;
   email: string;
   password: string;
-  passwordConfirmation: string;
 }
 
-const Signup: React.FC = () => {
+const Signin: React.FC = () => {
   const formRef = useRef<FormHandles>(null);
 
   const [errors, setErrors] = useState<Partial<FormData>>({});
 
-  const { signup } = useAuth();
+  const { signin } = useAuth();
 
   const onFormSubmit = useCallback(
     async (data: FormData) => {
@@ -33,7 +31,6 @@ const Signup: React.FC = () => {
 
       try {
         const schema = Yup.object().shape({
-          username: Yup.string().trim().required('Usuário inválido'),
           email: Yup.string()
             .email('E-mail inválido')
             .required('E-mail inválido'),
@@ -41,19 +38,15 @@ const Signup: React.FC = () => {
             .min(4, 'A senha deve ter entre 4 e 20 dígitos')
             .max(20, 'A senha deve ter entre 4 e 20 dígitos')
             .required('A senha deve ter entre 4 e 20 dígitos'),
-          passwordConfirmation: Yup.string().oneOf(
-            [Yup.ref('password')],
-            'As senhas devem ser iguais',
-          ),
         });
 
         await schema.validate(data, {
           abortEarly: false,
         });
 
-        const { username, email, password } = data;
+        const { email, password } = data;
 
-        await signup({ username, email, password });
+        await signin({ email, password });
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
           const formErrors = err.inner.reduce<Partial<FormData>>(
@@ -76,7 +69,7 @@ const Signup: React.FC = () => {
         }
       }
     },
-    [signup],
+    [signin],
   );
 
   return (
@@ -86,21 +79,11 @@ const Signup: React.FC = () => {
           <Person fontSize="large" />
         </Avatar>
 
-        <Typography variant="h6">Sign up</Typography>
+        <Typography variant="h6">Sign in</Typography>
 
         <Form ref={formRef} onSubmit={onFormSubmit}>
           <Grid container spacing={3}>
             <Grid item xs={12} />
-
-            <Grid item xs={12} sm={6}>
-              <TextInput
-                id="username"
-                label="Usuário"
-                required
-                hasError={!!errors.username}
-                helperText={errors.username}
-              />
-            </Grid>
 
             <Grid item xs={12} sm={6}>
               <TextInput
@@ -123,16 +106,6 @@ const Signup: React.FC = () => {
               />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
-              <PasswordInput
-                id="passwordConfirmation"
-                label="Confirme a senha"
-                required
-                hasError={!!errors.passwordConfirmation}
-                helperText={errors.passwordConfirmation}
-              />
-            </Grid>
-
             <Grid item xs={12}>
               <CheckboxInput id="remember" label="Lembrar-me" />
             </Grid>
@@ -145,7 +118,7 @@ const Signup: React.FC = () => {
                 color="primary"
                 size="large"
               >
-                Registrar
+                Login
               </Button>
             </Grid>
           </Grid>
@@ -155,4 +128,4 @@ const Signup: React.FC = () => {
   );
 };
 
-export default Signup;
+export default Signin;
