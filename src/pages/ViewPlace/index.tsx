@@ -1,9 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 import {
   Button,
   Card,
-  CardActions,
   CardContent,
   CardHeader,
   Container,
@@ -26,35 +25,37 @@ interface Place {
   devices: {
     id: string;
     name: string;
+    ip: string;
     type: string;
+    logs: {
+      id: string;
+      value: Record<string, unknown>;
+    }[];
   }[];
 }
 
-const Home: React.FC = () => {
+const ViewPlace: React.FC = () => {
   const theme = useTheme() as Theme;
   const matches = useMediaQuery(theme.breakpoints.up('sm'));
 
   const history = useHistory();
+  const { id: placeId } = useParams() as { id: string };
 
-  const [places, setPlaces] = useState<Place[]>([]);
+  const [place, setPlace] = useState<Place>();
 
   useEffect(() => {
-    async function fetchPlaces() {
-      const response = await api.get<Place[]>('/places');
+    async function fetchPlace() {
+      const response = await api.get<Place>(`/places/${placeId}`);
 
-      setPlaces(response.data);
+      setPlace(response.data);
     }
 
-    fetchPlaces();
-  }, []);
+    fetchPlace();
+  }, [placeId]);
 
-  const onAddButtonClick = useCallback(() => history.push('/places'), [
-    history,
-  ]);
-
-  const onViewButtonClick = useCallback(
-    (id: string) => history.push(`/places/${id}`),
-    [history],
+  const onAddButtonClick = useCallback(
+    () => history.push(`/places/${placeId}/devices`),
+    [history, placeId],
   );
 
   return (
@@ -68,7 +69,7 @@ const Home: React.FC = () => {
       >
         <Grid item>
           <Typography variant="h4" component="h1">
-            Meus Locais
+            {!!place && place.name}
           </Typography>
         </Grid>
 
@@ -81,7 +82,7 @@ const Home: React.FC = () => {
               style={{ borderRadius: '50vh' }}
               onClick={onAddButtonClick}
             >
-              Local
+              Dispositivo
             </Button>
           ) : (
             <IconButton color="secondary" onClick={onAddButtonClick}>
@@ -92,32 +93,33 @@ const Home: React.FC = () => {
       </Grid>
 
       <Grid container spacing={3}>
-        {places.map(({ id, name, hub_ip, devices }) => (
-          <Grid item xs={12} sm={6} key={id}>
-            <Card
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                height: '100%',
-              }}
-            >
-              <CardHeader title={name} subheader={hub_ip} />
+        {!!place &&
+          place.devices.map(({ id, name, ip, type }) => (
+            <Grid item xs={12} sm={6} key={id}>
+              <Card
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100%',
+                }}
+              >
+                <CardHeader
+                  title={
+                    <Grid container alignItems="center">
+                      {typeToIcon(type)}
+                      <Typography variant="h6">{name}</Typography>
+                    </Grid>
+                  }
+                  subheader={ip}
+                />
 
-              <CardContent>
-                {devices.map(device => typeToIcon(device.type, 'large'))}
-              </CardContent>
-
-              <CardActions style={{ marginTop: 'auto' }}>
-                <Button color="secondary" onClick={() => onViewButtonClick(id)}>
-                  Acessar
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
-        ))}
+                <CardContent>Oi</CardContent>
+              </Card>
+            </Grid>
+          ))}
       </Grid>
     </Container>
   );
 };
 
-export default Home;
+export default ViewPlace;
