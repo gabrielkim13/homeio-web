@@ -25,6 +25,8 @@
     "prettier"
   ],
   "rules": {
+    "react/prop-types": "off",
+    "react/jsx-wrap-multilines": "off",
     "prettier/prettier": "error",
     "no-use-before-define": "off",
     "react-hooks/rules-of-hooks": "error",

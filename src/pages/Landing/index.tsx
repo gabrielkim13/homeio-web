@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import { useHistory } from 'react-router-dom';
 import { Container, Theme } from '@material-ui/core';
 
 import { useTheme } from '@material-ui/styles';
@@ -12,6 +13,11 @@ import {
 
 const Landing: React.FC = () => {
   const theme = useTheme() as Theme;
+  const history = useHistory();
+
+  const onRegisterButtonClick = useCallback(() => {
+    history.push('/signup');
+  }, [history]);
 
   return (
     <Background>
@@ -30,7 +36,12 @@ const Landing: React.FC = () => {
             distância
           </Description>
 
-          <RegisterButton variant="contained" color="primary">
+          <RegisterButton
+            variant="contained"
+            color="primary"
+            onClick={onRegisterButtonClick}
+            size="large"
+          >
             Registre-se
           </RegisterButton>
         </Content>
