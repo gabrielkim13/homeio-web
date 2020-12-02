@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 import { Avatar, Button, Container, Grid, Typography } from '@material-ui/core';
-import { Place } from '@material-ui/icons';
+import { DevicesOther } from '@material-ui/icons';
 import { Form } from '@unform/web';
 import { FormHandles } from '@unform/core';
 import * as Yup from 'yup';
@@ -10,16 +10,19 @@ import api from '../../services/api';
 
 import TextInput from '../../components/TextInput';
 import MaskedInput from '../../components/MaskedInput';
+import SelectInput from '../../components/SelectInput';
 
 import { Content } from './styles';
 
 interface FormData {
   name: string;
-  hub_ip: string;
+  ip: string;
+  type: string;
 }
 
-const AddPlace: React.FC = () => {
+const AddDevice: React.FC = () => {
   const history = useHistory();
+  const { id: placeId } = useParams() as { id: string };
 
   const formRef = useRef<FormHandles>(null);
 
@@ -32,7 +35,7 @@ const AddPlace: React.FC = () => {
       try {
         const schema = Yup.object().shape({
           name: Yup.string().trim().required('Nome inválido'),
-          hub_ip: Yup.string()
+          ip: Yup.string()
             .matches(/(^(\d{1,3}\.){3}(\d{1,3})$)/, {
               message: 'Endereço IP inválido',
               excludeEmptyString: true,
@@ -45,22 +48,30 @@ const AddPlace: React.FC = () => {
               );
             })
             .required('Endereço IP inválido'),
+          type: Yup.number()
+            .min(0, 'Tipo inválido')
+            .max(1, 'Tipo inválido')
+            .required('Tipo inválido'),
         });
 
         await schema.validate(data, {
           abortEarly: false,
         });
 
-        const { name, hub_ip } = data;
+        const { name, ip, type } = data;
 
-        const stripLeadingZeros = hub_ip
+        const stripLeadingZeros = ip
           .split('.')
           .map(ipSubstring => parseInt(ipSubstring, 10))
           .join('.');
 
-        await api.post('/places', { name, hub_ip: stripLeadingZeros });
+        await api.post(`/places/${placeId}/devices`, {
+          name,
+          ip: stripLeadingZeros,
+          type: parseInt(type, 10),
+        });
 
-        history.push('/');
+        history.push(`/places/${placeId}`);
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
           const formErrors = err.inner.reduce<Partial<FormData>>(
@@ -83,17 +94,17 @@ const AddPlace: React.FC = () => {
         }
       }
     },
-    [history],
+    [history, placeId],
   );
 
   return (
     <Container>
       <Content>
         <Avatar style={{ width: 64, height: 64 }}>
-          <Place fontSize="large" />
+          <DevicesOther fontSize="large" />
         </Avatar>
 
-        <Typography variant="h6">Novo local</Typography>
+        <Typography variant="h6">Novo dispositivo</Typography>
 
         <Form ref={formRef} onSubmit={onFormSubmit}>
           <Grid container spacing={3}>
@@ -111,12 +122,26 @@ const AddPlace: React.FC = () => {
 
             <Grid item xs={12} sm={6}>
               <MaskedInput
-                id="hub_ip"
-                label="Endereço IP (Hub)"
+                id="ip"
+                label="Endereço IP"
                 mask="999.999.999.999"
                 required
-                hasError={!!errors.hub_ip}
-                helperText={errors.hub_ip}
+                hasError={!!errors.ip}
+                helperText={errors.ip}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6}>
+              <SelectInput
+                id="type"
+                label="Tipo"
+                options={[
+                  { value: '0', label: 'Lâmpada inteligente' },
+                  { value: '1', label: 'Sensor de luminosidade' },
+                ]}
+                required
+                hasError={!!errors.type}
+                helperText={errors.type}
               />
             </Grid>
 
@@ -138,4 +163,4 @@ const AddPlace: React.FC = () => {
   );
 };
 
-export default AddPlace;
+export default AddDevice;

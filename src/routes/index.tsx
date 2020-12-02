@@ -9,6 +9,7 @@ import Signin from '../pages/Signin';
 import Home from '../pages/Home';
 import AddPlace from '../pages/AddPlace';
 import ViewPlace from '../pages/ViewPlace';
+import AddDevice from '../pages/AddDevice';
 
 const Routes: React.FC = () => (
   <Switch>
@@ -16,6 +17,7 @@ const Routes: React.FC = () => (
     <Route path="/signup" component={Signup} />
     <Route path="/signin" component={Signin} />
     <Route path="/home" component={Home} isPrivate />
+    <Route path="/places/:id/devices" component={AddDevice} isPrivate />
     <Route path="/places/:id" component={ViewPlace} isPrivate />
     <Route path="/places" component={AddPlace} isPrivate />
   </Switch>
