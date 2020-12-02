@@ -129,14 +129,20 @@ const Home: React.FC = () => {
       <Grid container spacing={3}>
         {places.map(({ id, name, hub_ip, devices }) => (
           <Grid item xs={12} sm={6} key={id}>
-            <Card>
+            <Card
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                height: '100%',
+              }}
+            >
               <CardHeader title={name} subheader={hub_ip} />
 
               <CardContent>
                 {devices.map(device => typeToIcon(device.type))}
               </CardContent>
 
-              <CardActions>
+              <CardActions style={{ marginTop: 'auto' }}>
                 <Button color="secondary" onClick={() => onViewButtonClick(id)}>
                   Acessar
                 </Button>
