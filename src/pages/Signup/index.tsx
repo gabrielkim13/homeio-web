@@ -18,6 +18,7 @@ interface FormData {
   email: string;
   password: string;
   passwordConfirmation: string;
+  remember: boolean;
 }
 
 const Signup: React.FC = () => {
@@ -51,9 +52,9 @@ const Signup: React.FC = () => {
           abortEarly: false,
         });
 
-        const { username, email, password } = data;
+        const { username, email, password, remember } = data;
 
-        await signup({ username, email, password });
+        await signup({ username, email, password }, remember);
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
           const formErrors = err.inner.reduce<Partial<FormData>>(

@@ -25,8 +25,8 @@ interface AuthState {
 
 interface AuthContextData {
   user: User;
-  signup(credentials: SignupCredentials): Promise<void>;
-  signin(credentials: SigninCredentials): Promise<void>;
+  signup(credentials: SignupCredentials, remember?: boolean): Promise<void>;
+  signin(credentials: SigninCredentials, remember?: boolean): Promise<void>;
   signout(): void;
 }
 

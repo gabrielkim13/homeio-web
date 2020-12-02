@@ -16,6 +16,7 @@ import { Content } from './styles';
 interface FormData {
   email: string;
   password: string;
+  remember: boolean;
 }
 
 const Signin: React.FC = () => {
@@ -44,9 +45,9 @@ const Signin: React.FC = () => {
           abortEarly: false,
         });
 
-        const { email, password } = data;
+        const { email, password, remember } = data;
 
-        await signin({ email, password });
+        await signin({ email, password }, remember);
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
           const formErrors = err.inner.reduce<Partial<FormData>>(
