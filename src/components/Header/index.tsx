@@ -38,14 +38,14 @@ const Header: React.FC = () => {
                 Sign Out
               </Button>
             ) : (
-              <>
+              <Grid item>
                 <Button color="inherit" onClick={onSigninClick}>
                   Sign In
                 </Button>
                 <Button color="secondary" onClick={onSignupClick}>
                   Sign Up
                 </Button>
-              </>
+              </Grid>
             )}
           </Grid>
         </Toolbar>

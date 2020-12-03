@@ -2,9 +2,6 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import {
   Button,
-  Card,
-  CardContent,
-  CardHeader,
   Container,
   Grid,
   IconButton,
@@ -16,22 +13,30 @@ import { Add } from '@material-ui/icons';
 import { useTheme } from '@material-ui/styles';
 
 import api from '../../services/api';
-import { typeToIcon } from '../../utils';
+
+import SmartLampDevice from '../../components/SmartLampDevice';
+import LightSensorDevice from '../../components/LightSensorDevice';
+import UnknownDevice from '../../components/UnknownDevice';
+
+interface Log {
+  id: string;
+  value: any;
+  created_at: string;
+}
+
+interface Device {
+  id: string;
+  name: string;
+  ip: string;
+  type: string;
+  logs: Log[];
+}
 
 interface Place {
   id: string;
   name: string;
   hub_ip: string;
-  devices: {
-    id: string;
-    name: string;
-    ip: string;
-    type: string;
-    logs: {
-      id: string;
-      value: Record<string, unknown>;
-    }[];
-  }[];
+  devices: Device[];
 }
 
 const ViewPlace: React.FC = () => {
@@ -44,19 +49,50 @@ const ViewPlace: React.FC = () => {
   const [place, setPlace] = useState<Place>();
 
   useEffect(() => {
-    async function fetchPlace() {
+    async function fetchPlaceDevicesLogs() {
       const response = await api.get<Place>(`/places/${placeId}`);
 
-      setPlace(response.data);
+      const placeData = response.data;
+
+      const promises = [];
+
+      for (let i = 0; i < placeData.devices.length; i += 1) {
+        const deviceId = placeData.devices[i].id;
+
+        const promise = api
+          .get<Log[]>(`/places/${placeId}/devices/${deviceId}/logs`)
+          .then(responseLogs => {
+            placeData.devices[i].logs = responseLogs.data;
+          });
+
+        promises.push(promise);
+      }
+
+      await Promise.all(promises);
+
+      setPlace(placeData);
     }
 
-    fetchPlace();
+    fetchPlaceDevicesLogs();
   }, [placeId]);
 
   const onAddButtonClick = useCallback(
     () => history.push(`/places/${placeId}/devices`),
     [history, placeId],
   );
+
+  function renderDevice({ id, name, ip, type, logs }: Device) {
+    switch (type) {
+      case '0':
+        return <SmartLampDevice id={id} name={name} ip={ip} logs={logs} />;
+
+      case '1':
+        return <LightSensorDevice name={name} ip={ip} logs={logs} />;
+
+      default:
+        return <UnknownDevice name={name} ip={ip} />;
+    }
+  }
 
   return (
     <Container>
@@ -94,27 +130,9 @@ const ViewPlace: React.FC = () => {
 
       <Grid container spacing={3}>
         {!!place &&
-          place.devices.map(({ id, name, ip, type }) => (
-            <Grid item xs={12} sm={6} key={id}>
-              <Card
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  height: '100%',
-                }}
-              >
-                <CardHeader
-                  title={
-                    <Grid container alignItems="center">
-                      {typeToIcon(type)}
-                      <Typography variant="h6">{name}</Typography>
-                    </Grid>
-                  }
-                  subheader={ip}
-                />
-
-                <CardContent>Oi</CardContent>
-              </Card>
+          place.devices.map(device => (
+            <Grid item xs={12} sm={6} key={device.id}>
+              {renderDevice(device)}
             </Grid>
           ))}
       </Grid>
