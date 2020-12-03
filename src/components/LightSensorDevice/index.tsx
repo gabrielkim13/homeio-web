@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -19,9 +19,11 @@ import {
 } from 'recharts';
 
 import { typeToIcon } from '../../utils';
+import useEvent from '../../hooks/events';
 
 interface Log {
   id: string;
+  device_id: string;
   value: {
     luminosity: number;
   };
@@ -29,17 +31,28 @@ interface Log {
 }
 
 interface LightSensorDeviceProps {
+  id: string;
   name: string;
   ip: string;
   logs: Log[];
 }
 
 const LightSensorDevice: React.FC<LightSensorDeviceProps> = ({
+  id: deviceId,
   name,
   ip,
-  logs,
+  logs: initialLogs,
 }) => {
   const theme = useTheme() as Theme;
+
+  const [logs, setLogs] = useState<Log[]>(initialLogs);
+
+  useEvent('log', (log: Log) => {
+    if (log.device_id !== deviceId) return;
+
+    if (logs.length < 20) setLogs(state => state.concat([log]));
+    else setLogs(state => state.splice(1, 20).concat([log]));
+  });
 
   return (
     <Card
@@ -101,6 +114,7 @@ const LightSensorDevice: React.FC<LightSensorDeviceProps> = ({
               stroke={theme.palette.primary.main}
               fillOpacity={1}
               fill="url(#fill)"
+              animationDuration={300}
             />
           </AreaChart>
         </ResponsiveContainer>

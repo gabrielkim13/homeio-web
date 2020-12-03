@@ -20,6 +20,7 @@ import UnknownDevice from '../../components/UnknownDevice';
 
 interface Log {
   id: string;
+  device_id: string;
   value: any;
   created_at: string;
 }
@@ -62,7 +63,9 @@ const ViewPlace: React.FC = () => {
         const promise = api
           .get<Log[]>(`/places/${placeId}/devices/${deviceId}/logs`)
           .then(responseLogs => {
-            placeData.devices[i].logs = responseLogs.data;
+            placeData.devices[i].logs = responseLogs.data
+              .slice(0, 20)
+              .reverse();
           });
 
         promises.push(promise);
@@ -87,7 +90,7 @@ const ViewPlace: React.FC = () => {
         return <SmartLampDevice id={id} name={name} ip={ip} logs={logs} />;
 
       case '1':
-        return <LightSensorDevice name={name} ip={ip} logs={logs} />;
+        return <LightSensorDevice id={id} name={name} ip={ip} logs={logs} />;
 
       default:
         return <UnknownDevice name={name} ip={ip} />;

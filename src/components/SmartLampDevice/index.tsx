@@ -24,9 +24,11 @@ import {
 
 import { typeToIcon } from '../../utils';
 import api from '../../services/api';
+import useEvent from '../../hooks/events';
 
 interface Log {
   id: string;
+  device_id: string;
   value: {
     status: boolean;
   };
@@ -44,16 +46,18 @@ const LightSensorDevice: React.FC<LightSensorDeviceProps> = ({
   id: deviceId,
   name,
   ip,
-  logs,
+  logs: initialLogs,
 }) => {
   const theme = useTheme() as Theme;
   const { id: placeId } = useParams() as { id: string };
 
   const [status, setStatus] = useState<boolean>(() => {
-    if (logs.length === 0) return false;
+    if (initialLogs.length === 0) return false;
 
-    return logs[logs.length - 1].value.status;
+    return initialLogs[initialLogs.length - 1].value.status;
   });
+
+  const [logs, setLogs] = useState<Log[]>(initialLogs);
 
   const onStatusChange = useCallback(async () => {
     api.post<Log>(`/places/${placeId}/devices/${deviceId}/logs`, {
@@ -64,6 +68,15 @@ const LightSensorDevice: React.FC<LightSensorDeviceProps> = ({
 
     setStatus(!status);
   }, [deviceId, placeId, status]);
+
+  useEvent('log', (log: Log) => {
+    if (log.device_id !== deviceId) return;
+
+    setStatus(log.value.status);
+
+    if (logs.length < 20) setLogs(state => state.concat([log]));
+    else setLogs(state => state.splice(1, 20).concat([log]));
+  });
 
   return (
     <Card
@@ -120,11 +133,12 @@ const LightSensorDevice: React.FC<LightSensorDeviceProps> = ({
             <YAxis />
             <Tooltip labelStyle={{ color: theme.palette.primary.main }} />
             <Area
-              type="monotone"
+              type="stepAfter"
               dataKey="value"
               stroke={theme.palette.primary.main}
               fillOpacity={1}
               fill="url(#fill)"
+              animationDuration={300}
             />
           </AreaChart>
         </ResponsiveContainer>
