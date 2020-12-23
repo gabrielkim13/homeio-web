@@ -74,8 +74,8 @@ const LightSensorDevice: React.FC<LightSensorDeviceProps> = ({
 
     setStatus(log.value.status);
 
-    if (logs.length < 20) setLogs(state => state.concat([log]));
-    else setLogs(state => state.splice(1, 20).concat([log]));
+    if (logs.length < 20) setLogs(logs.concat(log));
+    else setLogs(logs.splice(1, 19).concat(log));
   });
 
   return (
